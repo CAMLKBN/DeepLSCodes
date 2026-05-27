@@ -217,9 +217,6 @@ The DeepLS model uses a Fourier-feature input encoder, a shared trunk, and two o
   <b>Figure 2.</b> Shared-trunk neural-network architecture used in the DeepLS formulation. The input coordinates are lifted through a Fourier-feature encoder, followed by a shared trunk and task-specific output heads for the transformed pressure and Darcy velocity.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_2_NN_Architecture.pdf">High-resolution PDF</a>
-</p>
 
 ---
 
