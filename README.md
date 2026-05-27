@@ -63,49 +63,91 @@ The paper develops a Deep Least-Squares (DeepLS) framework for nonlinear gas flo
 
 The apparent gas permeability is modeled as pressure dependent:
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\mathbf{K}_g(\mathbf{x},p)=\mathbf{K}_0(\mathbf{x})\left(1+\frac{\beta%20p_{\mathrm{atm}}}{p(\mathbf{x})}\right)" alt="Klinkenberg gas permeability">
-</p>
+```math
+\mathbf{K}_g(\mathbf{x},p)
+=
+\mathbf{K}_0(\mathbf{x})
+\left(
+1+\frac{\beta p_{\mathrm{atm}}}{p(\mathbf{x})}
+\right)
+```
 
-where **K₀** is the intrinsic permeability tensor, **p** is the absolute gas pressure, **β** is the dimensionless Klinkenberg parameter, and **pₐₜₘ** is atmospheric pressure.
+where `K0` is the intrinsic permeability tensor, `p` is the absolute gas pressure, `beta` is the dimensionless Klinkenberg parameter, and `p_atm` is atmospheric pressure.
 
 The Hopf–Cole transformed pressure is defined as
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?P(\mathbf{x})=p(\mathbf{x})+\beta%20p_{\mathrm{atm}}\ln\!\left[p(\mathbf{x})\right]" alt="Hopf-Cole transformed pressure">
-</p>
+```math
+P(\mathbf{x})
+=
+p(\mathbf{x})
++
+\beta p_{\mathrm{atm}}
+\ln\!\left[p(\mathbf{x})\right]
+```
 
 which gives the transformed mixed Darcy-type system
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\mu%20\mathbf{K}_0^{-1}(\mathbf{x})\mathbf{u}(\mathbf{x})+\mathrm{grad}\!\left[P(\mathbf{x})\right]=\mathbf{0}\quad\mathrm{in}\%20\Omega" alt="Transformed Darcy momentum equation">
-</p>
+```math
+\mu \mathbf{K}_0^{-1}(\mathbf{x})\mathbf{u}(\mathbf{x})
++
+\mathrm{grad}\!\left[P(\mathbf{x})\right]
+=
+\mathbf{0}
+\qquad
+\mathrm{in}\ \Omega
+```
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\mathrm{div}\!\left[\mathbf{u}(\mathbf{x})\right]=0\quad\mathrm{in}\%20\Omega" alt="Mass conservation equation">
-</p>
+```math
+\mathrm{div}\!\left[\mathbf{u}(\mathbf{x})\right]
+=
+0
+\qquad
+\mathrm{in}\ \Omega
+```
 
 with boundary conditions
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\mathbf{u}(\mathbf{x})\bullet\widehat{\mathbf{n}}(\mathbf{x})=u_n(\mathbf{x})\quad\mathrm{on}\%20\Gamma_u" alt="Flux boundary condition">
-</p>
+```math
+\mathbf{u}(\mathbf{x})\bullet \widehat{\mathbf{n}}(\mathbf{x})
+=
+u_n(\mathbf{x})
+\qquad
+\mathrm{on}\ \Gamma_u
+```
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?P(\mathbf{x})=P_p(\mathbf{x})\quad\mathrm{on}\%20\Gamma_p" alt="Pressure boundary condition">
-</p>
+```math
+P(\mathbf{x})
+=
+P_p(\mathbf{x})
+\qquad
+\mathrm{on}\ \Gamma_p
+```
 
 where
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?P_p(\mathbf{x})=p_p(\mathbf{x})+\beta%20p_{\mathrm{atm}}\ln\!\left[p_p(\mathbf{x})\right]" alt="Transformed prescribed pressure">
-</p>
+```math
+P_p(\mathbf{x})
+=
+p_p(\mathbf{x})
++
+\beta p_{\mathrm{atm}}
+\ln\!\left[p_p(\mathbf{x})\right]
+```
 
-After solving for **P**, the physical gas pressure is recovered using the principal branch of the Lambert–W function:
+After solving for `P`, the physical gas pressure is recovered using the principal branch of the Lambert–W function:
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?p(\mathbf{x})=\beta%20p_{\mathrm{atm}}W_0\!\left(\frac{1}{\beta%20p_{\mathrm{atm}}}\exp\!\left[\frac{P(\mathbf{x})}{\beta%20p_{\mathrm{atm}}}\right]\right)" alt="Inverse Hopf-Cole transformation">
-</p>
+```math
+p(\mathbf{x})
+=
+\beta p_{\mathrm{atm}}
+W_0
+\left(
+\frac{1}{\beta p_{\mathrm{atm}}}
+\exp\!\left[
+\frac{P(\mathbf{x})}{\beta p_{\mathrm{atm}}}
+\right]
+\right)
+```
 
 ---
 
@@ -113,27 +155,59 @@ After solving for **P**, the physical gas pressure is recovered using the princi
 
 The residuals of the transformed problem are
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\mathbf{R}_1:=\mu%20\mathbf{K}_0^{-1}(\mathbf{x})\mathbf{u}(\mathbf{x})+\mathrm{grad}\!\left[P(\mathbf{x})\right]" alt="Residual R1">
-</p>
+```math
+\mathbf{R}_1
+:=
+\mu \mathbf{K}_0^{-1}(\mathbf{x})\mathbf{u}(\mathbf{x})
++
+\mathrm{grad}\!\left[P(\mathbf{x})\right]
+```
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?R_2:=\mathrm{div}\!\left[\mathbf{u}(\mathbf{x})\right]" alt="Residual R2">
-</p>
+```math
+R_2
+:=
+\mathrm{div}\!\left[\mathbf{u}(\mathbf{x})\right]
+```
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?R_3:=\mathbf{u}(\mathbf{x})\bullet\widehat{\mathbf{n}}(\mathbf{x})-u_n(\mathbf{x})" alt="Residual R3">
-</p>
+```math
+R_3
+:=
+\mathbf{u}(\mathbf{x})\bullet \widehat{\mathbf{n}}(\mathbf{x})
+-
+u_n(\mathbf{x})
+```
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?R_4:=P(\mathbf{x})-P_p(\mathbf{x})" alt="Residual R4">
-</p>
+```math
+R_4
+:=
+P(\mathbf{x})-P_p(\mathbf{x})
+```
 
 The least-squares functional minimized by the DeepLS solver is
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\Pi_{\mathrm{LS}}[P,\mathbf{u}]=\frac{1}{2}\left\|\mu^{-1/2}\sqrt{\mathbf{K}_0(\mathbf{x})}\mathbf{R}_1\right\|_{\Omega}^{2}+\frac{1}{2}\left\|R_2\right\|_{\Omega}^{2}+\frac{1}{2}\left\|R_3\right\|_{\Gamma_u}^{2}+\frac{1}{2}\left\|R_4\right\|_{\Gamma_p}^{2}" alt="Deep least-squares functional">
-</p>
+```math
+\Pi_{\mathrm{LS}}[P,\mathbf{u}]
+=
+\frac{1}{2}
+\left\|
+\mu^{-1/2}\sqrt{\mathbf{K}_0(\mathbf{x})}\,\mathbf{R}_1
+\right\|_{\Omega}^{2}
++
+\frac{1}{2}
+\left\|
+R_2
+\right\|_{\Omega}^{2}
++
+\frac{1}{2}
+\left\|
+R_3
+\right\|_{\Gamma_u}^{2}
++
+\frac{1}{2}
+\left\|
+R_4
+\right\|_{\Gamma_p}^{2}
+```
 
 ---
 
@@ -205,11 +279,11 @@ DeepLSCodes/
 │   ├── APP_LambertW.png
 │   └── APP_LambertW.pdf
 ├── src/
-│   ├── models/              # neural network architectures
-│   ├── losses/              # DeepLS residual and boundary losses
-│   ├── transforms/          # Hopf-Cole and inverse Hopf-Cole maps
-│   ├── quadrature/          # collocation and sampling utilities
-│   └── utils/               # plotting, metrics, and post-processing
+│   ├── models/
+│   ├── losses/
+│   ├── transforms/
+│   ├── quadrature/
+│   └── utils/
 ├── examples/
 │   ├── concentric_cylinders/
 │   ├── footing_problem/
@@ -484,21 +558,43 @@ The repository also includes a Betti-type reciprocity check for the Klinkenberg 
 
 For two solution states, the normalized Betti reciprocity error is defined as
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?\eta_B:=\frac{|I_{12}-I_{21}|}{|I_{12}|+|I_{21}|}" alt="Normalized Betti reciprocity error">
-</p>
+```math
+\eta_B
+:=
+\frac{|I_{12}-I_{21}|}{|I_{12}|+|I_{21}|}
+```
 
 where
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?I_{12}:=\int_{\Gamma_p}\left(p_p^{(2)}(\mathbf{x})+\beta%20p_{\mathrm{atm}}\ln\!\left[p_p^{(2)}(\mathbf{x})\right]\right)\mathbf{u}^{(1)}(\mathbf{x})\bullet\widehat{\mathbf{n}}(\mathbf{x})\,\mathrm{d}\Gamma" alt="Betti integral I12">
-</p>
+```math
+I_{12}
+:=
+\int_{\Gamma_p}
+\left(
+p_p^{(2)}(\mathbf{x})
++
+\beta p_{\mathrm{atm}}
+\ln\!\left[p_p^{(2)}(\mathbf{x})\right]
+\right)
+\mathbf{u}^{(1)}(\mathbf{x})\bullet \widehat{\mathbf{n}}(\mathbf{x})
+\,\mathrm{d}\Gamma
+```
 
 and
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?I_{21}:=\int_{\Gamma_p}\left(p_p^{(1)}(\mathbf{x})+\beta%20p_{\mathrm{atm}}\ln\!\left[p_p^{(1)}(\mathbf{x})\right]\right)\mathbf{u}^{(2)}(\mathbf{x})\bullet\widehat{\mathbf{n}}(\mathbf{x})\,\mathrm{d}\Gamma" alt="Betti integral I21">
-</p>
+```math
+I_{21}
+:=
+\int_{\Gamma_p}
+\left(
+p_p^{(1)}(\mathbf{x})
++
+\beta p_{\mathrm{atm}}
+\ln\!\left[p_p^{(1)}(\mathbf{x})\right]
+\right)
+\mathbf{u}^{(2)}(\mathbf{x})\bullet \widehat{\mathbf{n}}(\mathbf{x})
+\,\mathrm{d}\Gamma
+```
 
 <p align="center">
   <img src="assets/Fig_18_Bettis_error.png" width="650" alt="Betti reciprocity error versus network width">
@@ -518,11 +614,11 @@ and
 
 The inverse Hopf–Cole map uses the principal real branch of the Lambert–W function. The Lambert–W function satisfies
 
-<p align="center">
-  <img src="https://latex.codecogs.com/svg.image?W(x)e^{W(x)}=x" alt="Lambert-W defining equation">
-</p>
+```math
+W(x)e^{W(x)}=x
+```
 
-For the positive-pressure regime considered in this work, the argument of the inverse map is positive, and the principal branch **W₀** is used.
+For the positive-pressure regime considered in this work, the argument of the inverse map is positive, and the principal branch `W0` is used.
 
 <p align="center">
   <img src="assets/APP_LambertW.png" width="650" alt="Real-valued branches of the Lambert-W function">
