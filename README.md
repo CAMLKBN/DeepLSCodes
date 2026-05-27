@@ -439,9 +439,6 @@ The three-dimensional spherical-shell benchmark verifies performance on a curved
   <b>Figure 14.</b> Three-dimensional concentric-sphere benchmark. Prescribed pressure conditions are imposed on the inner and outer spherical boundaries, with a no-normal-flux condition on the symmetry plane.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_14_3D_Sphere.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_15_3D_Sphere_Results.png" width="760" alt="Concentric-sphere pressure and velocity fields">
@@ -451,9 +448,6 @@ The three-dimensional spherical-shell benchmark verifies performance on a curved
   <b>Figure 15.</b> DeepLS prediction for the concentric-sphere problem: pressure field and velocity-magnitude field.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_15_3D_Sphere_Results.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_16_3d_Kinkenberg_analytical_VS_Predection.png" width="850" alt="Analytical and DeepLS radial profiles for concentric spheres">
@@ -463,9 +457,6 @@ The three-dimensional spherical-shell benchmark verifies performance on a curved
   <b>Figure 16.</b> Analytical solution versus DeepLS prediction for the radial pressure and radial velocity profiles in the spherical benchmark.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_16_3d_Kinkenberg_analytical_VS_Predection.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_17_L2_error_3d_Kinkenberg_Model.png" width="850" alt="Network capacity study for the three-dimensional Klinkenberg model">
@@ -473,10 +464,6 @@ The three-dimensional spherical-shell benchmark verifies performance on a curved
 
 <p align="center">
   <b>Figure 17.</b> Network-capacity study for the three-dimensional Klinkenberg benchmark. Errors decrease with increasing network width and depth.
-</p>
-
-<p align="center">
-  <a href="assets/Fig_17_L2_error_3d_Kinkenberg_Model.pdf">High-resolution PDF</a>
 </p>
 
 ---
@@ -533,10 +520,6 @@ p_p^{(1)}(\mathbf{x})
   <b>Figure 18.</b> Normalized Betti reciprocity error as a function of the number of neurons per hidden layer. Wider and deeper architectures reduce the reciprocity violation, providing a mechanics-based a posteriori verification measure.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_18_Bettis_error.pdf">High-resolution PDF</a>
-</p>
-
 ---
 
 ## Appendix: Lambert–W function
@@ -555,10 +538,6 @@ For the positive-pressure regime considered in this work, the argument of the in
 
 <p align="center">
   <b>Appendix figure.</b> Real-valued branches of the Lambert–W function. The principal branch is used in the inverse Hopf–Cole transformation for positive-pressure gas-flow states.
-</p>
-
-<p align="center">
-  <a href="assets/APP_LambertW.pdf">High-resolution PDF</a>
 </p>
 
 ---
