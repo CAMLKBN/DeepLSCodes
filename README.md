@@ -25,10 +25,6 @@ The paper develops a Deep Least-Squares (DeepLS) framework for nonlinear gas flo
   <b>Graphical abstract.</b> Three-dimensional concentric spherical gas-flow problem and representative pressure prediction obtained using the proposed DeepLS framework.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_0_Graphical_abstract_DeepLS.pdf">High-resolution PDF</a>
-</p>
-
 ---
 
 ## Highlights
@@ -53,9 +49,7 @@ The paper develops a Deep Least-Squares (DeepLS) framework for nonlinear gas flo
   <b>Figure 1.</b> Conceptual workflow of the proposed DeepLS framework. The nonlinear Klinkenberg model is transformed into a Darcy-type linear model through the Hopf–Cole transformation. The transformed pressure and velocity fields are learned using a least-squares neural formulation, and the physical pressure is recovered by the inverse Hopf–Cole transformation.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_1_Concept_figure.pdf">High-resolution PDF</a>
-</p>
+
 
 ---
 
@@ -226,71 +220,6 @@ The DeepLS model uses a Fourier-feature input encoder, a shared trunk, and two o
 <p align="center">
   <a href="assets/Fig_2_NN_Architecture.pdf">High-resolution PDF</a>
 </p>
-
----
-
-## Repository structure
-
-A recommended repository organization is shown below. Adjust folder names as needed to match the final code release.
-
-```text
-DeepLSCodes/
-├── README.md
-├── requirements.txt
-├── assets/
-│   ├── Fig_0_Graphical_abstract_DeepLS.png
-│   ├── Fig_0_Graphical_abstract_DeepLS.pdf
-│   ├── Fig_1_Concept_figure.png
-│   ├── Fig_1_Concept_figure.pdf
-│   ├── Fig_2_NN_Architecture.png
-│   ├── Fig_2_NN_Architecture.pdf
-│   ├── Fig_3_Kinkenberg_2D_Candle_filter_problem.png
-│   ├── Fig_3_Kinkenberg_2D_Candle_filter_problem.pdf
-│   ├── Fig_4_Klinkenberg_Solution_Concentric_Circles.png
-│   ├── Fig_4_Klinkenberg_Solution_Concentric_Circles.pdf
-│   ├── Fig_5_Analytical_Solution_VS_Numerical_Solution.png
-│   ├── Fig_5_Analytical_Solution_VS_Numerical_Solution.pdf
-│   ├── Fig_6_L2_error.png
-│   ├── Fig_6_L2_error.pdf
-│   ├── Fig_7_Footing_BVP.png
-│   ├── Fig_7_Footing_BVP.pdf
-│   ├── Fig_8_DLS_Footing_Solution.png
-│   ├── Fig_8_DLS_Footing_Solution.pdf
-│   ├── Fig_9_DLS_Footing_Absolute_error.png
-│   ├── Fig_9_DLS_Footing_Absolute_error.pdf
-│   ├── Fig_10_Total_Loss_vs_Epochs.png
-│   ├── Fig_10_Total_Loss_vs_Epochs.pdf
-│   ├── Fig_11_Layered_Media.png
-│   ├── Fig_11_Layered_Media.pdf
-│   ├── Fig_12_Kinkenberg_Layered_Media_Results.png
-│   ├── Fig_12_Kinkenberg_Layered_Media_Results.pdf
-│   ├── Fig_13_Klinkenberg_Layered_Media_Velocity.png
-│   ├── Fig_13_Klinkenberg_Layered_Media_Velocity.pdf
-│   ├── Fig_14_3D_Sphere.png
-│   ├── Fig_14_3D_Sphere.pdf
-│   ├── Fig_15_3D_Sphere_Results.png
-│   ├── Fig_15_3D_Sphere_Results.pdf
-│   ├── Fig_16_3d_Kinkenberg_analytical_VS_Predection.png
-│   ├── Fig_16_3d_Kinkenberg_analytical_VS_Predection.pdf
-│   ├── Fig_17_L2_error_3d_Kinkenberg_Model.png
-│   ├── Fig_17_L2_error_3d_Kinkenberg_Model.pdf
-│   ├── Fig_18_Bettis_error.png
-│   ├── Fig_18_Bettis_error.pdf
-│   ├── APP_LambertW.png
-│   └── APP_LambertW.pdf
-├── src/
-│   ├── models/
-│   ├── losses/
-│   ├── transforms/
-│   ├── quadrature/
-│   └── utils/
-├── examples/
-│   ├── concentric_cylinders/
-│   ├── footing_problem/
-│   ├── layered_medium/
-│   └── concentric_spheres/
-└── data/
-```
 
 ---
 
