@@ -289,9 +289,6 @@ This benchmark compares the DeepLS prediction against the analytical Klinkenberg
   <b>Figure 3.</b> Concentric-cylinder benchmark problem. Prescribed pressures are imposed on the inner and outer circular boundaries, producing an axisymmetric radial flow field.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_3_Kinkenberg_2D_Candle_filter_problem.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_4_Klinkenberg_Solution_Concentric_Circles.png" width="760" alt="Concentric-cylinder pressure and velocity fields">
@@ -301,9 +298,6 @@ This benchmark compares the DeepLS prediction against the analytical Klinkenberg
   <b>Figure 4.</b> DeepLS prediction for the concentric-cylinder problem: pressure field and velocity-magnitude field with velocity vectors.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_4_Klinkenberg_Solution_Concentric_Circles.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_5_Analytical_Solution_VS_Numerical_Solution.png" width="850" alt="Analytical and DeepLS radial profiles for concentric cylinders">
@@ -313,9 +307,6 @@ This benchmark compares the DeepLS prediction against the analytical Klinkenberg
   <b>Figure 5.</b> Comparison between analytical solutions and DeepLS predictions for the radial pressure and radial velocity profiles. The Klinkenberg correction produces a clear deviation from the classical Darcy response.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_5_Analytical_Solution_VS_Numerical_Solution.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_6_L2_error.png" width="850" alt="Convergence with network capacity for concentric cylinders">
@@ -325,9 +316,6 @@ This benchmark compares the DeepLS prediction against the analytical Klinkenberg
   <b>Figure 6.</b> Convergence of the DeepLS approximation with increasing network capacity. The error decreases as network width and depth are increased.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_6_L2_error.pdf">High-resolution PDF</a>
-</p>
 
 ---
 
@@ -343,9 +331,6 @@ The footing benchmark introduces mixed pressure and no-flux boundary segments. T
   <b>Figure 7.</b> Footing-type boundary-value problem with mixed pressure and no-flux boundary segments. This benchmark tests the ability of the method to handle abrupt transitions between different boundary conditions.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_7_Footing_BVP.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_8_DLS_Footing_Solution.png" width="850" alt="Footing problem pressure and velocity fields">
@@ -355,9 +340,6 @@ The footing benchmark introduces mixed pressure and no-flux boundary segments. T
   <b>Figure 8.</b> DeepLS prediction for the footing problem: pressure field and velocity-magnitude field.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_8_DLS_Footing_Solution.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_9_DLS_Footing_Absolute_error.png" width="850" alt="Footing problem error and relative error convergence">
@@ -367,9 +349,6 @@ The footing benchmark introduces mixed pressure and no-flux boundary segments. T
   <b>Figure 9.</b> Footing problem error analysis. The figure shows pressure and velocity-magnitude errors relative to a stabilized mixed finite element reference solution, together with relative error convergence as the collocation density increases.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_9_DLS_Footing_Absolute_error.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_10_Total_Loss_vs_Epochs.png" width="760" alt="Footing problem total training loss">
@@ -379,9 +358,6 @@ The footing benchmark introduces mixed pressure and no-flux boundary segments. T
   <b>Figure 10.</b> Total training loss for different collocation densities. Increasing the number of collocation points improves residual enforcement and lowers the terminal loss.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_10_Total_Loss_vs_Epochs.pdf">High-resolution PDF</a>
-</p>
 
 ---
 
@@ -397,9 +373,6 @@ The layered-medium benchmark tests interface-resolving behavior under discontinu
   <b>Figure 11.</b> Layered porous medium benchmark with piecewise-constant intrinsic permeability. The problem tests the ability of the formulation to resolve sharp material interfaces and layer-wise flow redistribution.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_11_Layered_Media.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_12_Kinkenberg_Layered_Media_Results.png" width="850" alt="Layered medium pressure and velocity fields">
@@ -409,9 +382,6 @@ The layered-medium benchmark tests interface-resolving behavior under discontinu
   <b>Figure 12.</b> DeepLS prediction for the layered medium: continuous pressure field and layer-dependent velocity magnitude.
 </p>
 
-<p align="center">
-  <a href="assets/Fig_12_Kinkenberg_Layered_Media_Results.pdf">High-resolution PDF</a>
-</p>
 
 <p align="center">
   <img src="assets/Fig_13_Klinkenberg_Layered_Media_Velocity.png" width="850" alt="Layered medium horizontal velocity profile">
@@ -419,10 +389,6 @@ The layered-medium benchmark tests interface-resolving behavior under discontinu
 
 <p align="center">
   <b>Figure 13.</b> Depthwise horizontal velocity profile in the layered medium. The step-like structure reflects the prescribed permeability stratification and demonstrates interface-resolving behavior.
-</p>
-
-<p align="center">
-  <a href="assets/Fig_13_Klinkenberg_Layered_Media_Velocity.pdf">High-resolution PDF</a>
 </p>
 
 ---
