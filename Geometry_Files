@@ -1,0 +1,267 @@
+# Concentic Circles 
+
+#---------------------;
+# Geometry parameters ;
+#---------------------;
+r_outer = 1.0
+r_inner = 0.3
+
+#------------------------------------;
+# Function to sample boundary points ;
+#------------------------------------;
+
+def sample_boundary_points(N_boundary, circle_type):
+    theta = np.linspace(0, 2 * np.pi, N_boundary, endpoint=False)
+    if circle_type == "OuterCircle":
+        r = r_outer
+    elif circle_type == "InnerCircle":
+        r = r_inner
+    else:
+        raise ValueError("circle_type must be 'OuterCircle' or 'InnerCircle'.")
+
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
+    points = np.stack([x, y], axis=1)
+    return torch.tensor(points, dtype=torch.float32)
+
+#==================================;
+# Function to sample domain points ;
+#==================================;
+
+def sample_domain_points(N_domain):
+    #------------------------------;
+    # Oversample in a bounding box ;
+    #------------------------------;
+    points = np.random.uniform(-r_outer, r_outer, (N_domain * 2, 2))
+
+    valid_points = []
+    for p in points:
+        r = np.sqrt(p[0]**2 + p[1]**2)
+        if r_inner <= r <= r_outer:
+            valid_points.append(p)
+
+    valid_points = valid_points[:N_domain]
+    if len(valid_points) < N_domain:
+        print(f"Warning: Only {len(valid_points)} domain points sampled.")
+
+    return torch.tensor(valid_points, dtype=torch.float32)
+#==========================================;
+# Function to compute unit outward normals ;
+#==========================================;
+def compute_unit_outward_normal(points, circle_type):
+    r_vec = points / (torch.norm(points, dim=1, keepdim=True) + 1e-8)
+    if circle_type == "OuterCircle":
+        #r = r_outer
+        #---------------------------------------------;
+        # Outward normal for outer circle: (x/r, y/r) ;
+        #---------------------------------------------;
+        normals = r_vec#points / r
+    elif circle_type == "InnerCircle":
+        #r = r_inner
+        #---------------------------------;
+        # Outward normal for inner circle ;
+        #---------------------------------;
+        normals = -(-r_vec)#-points / r
+    else:
+        raise ValueError("circle_type must be 'OuterCircle' or 'InnerCircle'.")
+    #--------------------;
+    # Ensure unit length ;
+    #--------------------;
+    #normals /= torch.norm(normals, dim=1, keepdim=True) + 1e-8
+    return normals
+
+#---------------;
+# Sample points ;
+#---------------;
+N_domain = 10000
+N_boundary = 1000
+outer_points = sample_boundary_points(N_boundary, "OuterCircle").to(DEVICE).requires_grad_(True)
+inner_points = sample_boundary_points(N_boundary, "InnerCircle").to(DEVICE).requires_grad_(True)
+domain_points = sample_domain_points(N_domain).to(DEVICE).requires_grad_(True)
+#-----------------;
+# Compute normals ;
+#-----------------;
+outer_normals = compute_unit_outward_normal(outer_points, "OuterCircle")
+inner_normals = compute_unit_outward_normal(inner_points, "InnerCircle")
+
+
+# Fotting 
+
+# -------------------
+# Geometry
+# -------------------
+length = 10.0  # x ∈ [0, 10]
+height = 5.0   # y ∈ [0, 5]
+
+# Top boundary segmentation from the figure
+x_T1_end = 2.5
+x_T3_start = 7.5
+
+p_left = 12.3
+p_right = 1.0
+
+# Darcy parameters (K=1 everywhere)
+MU = 1.0
+
+# -------------------------------
+# Geometry & boundary samplers
+# -------------------------------
+
+def sample_boundary_points(
+    N: int,
+    boundary: str,
+    *,
+    device=DEVICE,
+    requires_grad: bool = False,
+) -> torch.Tensor:
+    """Deterministic boundary sampling (kept as in your code)."""
+    if boundary == "Left":  # x = 0
+        x = np.zeros(N, dtype=np.float32)
+        y = np.linspace(0.0, height, N, endpoint=False, dtype=np.float32)
+    elif boundary == "Right":  # x = L
+        x = np.full(N, length, dtype=np.float32)
+        y = np.linspace(0.0, height, N, endpoint=False, dtype=np.float32)
+    elif boundary == "Bottom":  # y = 0
+        x = np.linspace(0.0, length, N, endpoint=False, dtype=np.float32)
+        y = np.zeros(N, dtype=np.float32)
+    elif boundary == "Top":  # y = H
+        x = np.linspace(0.0, length, N, endpoint=False, dtype=np.float32)
+        y = np.full(N, height, dtype=np.float32)
+    else:
+        raise ValueError("boundary must be 'Left', 'Right', 'Bottom', or 'Top'.")
+
+    pts = np.stack([x, y], axis=1)
+    return torch.tensor(pts, device=device, requires_grad=requires_grad)
+
+
+def sample_domain_points(
+    N: int,
+    *,
+    device=DEVICE,
+    requires_grad: bool = False,
+) -> torch.Tensor:
+    xs = np.random.uniform(0.0, length, N).astype(np.float32)
+    ys = np.random.uniform(0.0, height, N).astype(np.float32)
+    pts = np.stack([xs, ys], axis=1)
+    return torch.tensor(pts, device=device, requires_grad=requires_grad)
+
+
+def compute_unit_outward_normal(points: torch.Tensor, boundary: str) -> torch.Tensor:
+    if boundary == "Left":
+        n = torch.tensor([-1.0, 0.0], device=points.device)
+    elif boundary == "Right":
+        n = torch.tensor([1.0, 0.0], device=points.device)
+    elif boundary == "Bottom":
+        n = torch.tensor([0.0, -1.0], device=points.device)
+    elif boundary == "Top":
+        n = torch.tensor([0.0, 1.0], device=points.device)
+    else:
+        raise ValueError("boundary must be 'Left', 'Right', 'Bottom', or 'Top'.")
+    return n.expand(points.shape[0], 2)
+
+
+# Concetric spheres 
+
+#============================================================
+# Geometry sampling
+#============================================================
+
+def sample_boundary_points(N_boundary, surface_type, hemisphere="upper"):
+    """
+    surface_type:
+      - "OuterHemisphere"
+      - "InnerHemisphere"
+      - "BaseAnnulus"    (z=0, rho in [r_inner, r_outer])
+    hemisphere:
+      - "upper" -> z >= 0
+      - "lower" -> z <= 0
+    """
+    if surface_type == "BaseAnnulus":
+        # Uniform-in-area planar annulus at z=0
+        theta = np.random.uniform(0.0, 2.0 * np.pi, N_boundary)
+        rho = np.sqrt(np.random.uniform(r_inner**2, r_outer**2, N_boundary))
+        x = rho * np.cos(theta)
+        y = rho * np.sin(theta)
+        z = np.zeros_like(x)
+        pts = np.stack([x, y, z], axis=1)
+        return torch.tensor(pts, dtype=torch.float32)
+
+    if surface_type == "OuterHemisphere":
+        r = r_outer
+    elif surface_type == "InnerHemisphere":
+        r = r_inner
+    else:
+        raise ValueError("surface_type must be 'OuterHemisphere', 'InnerHemisphere', or 'BaseAnnulus'.")
+
+    # Uniform-on-surface hemisphere:
+    # theta uniform in [0,2pi), cos(phi) uniform in [0,1] for upper; [-1,0] for lower via sign
+    theta = np.random.uniform(0.0, 2.0 * np.pi, N_boundary)
+    u = np.random.uniform(0.0, 1.0, N_boundary)  # u = |cos(phi)|
+
+    if hemisphere == "upper":
+        cos_phi = u
+    elif hemisphere == "lower":
+        cos_phi = -u
+    else:
+        raise ValueError("hemisphere must be 'upper' or 'lower'.")
+
+    sin_phi = np.sqrt(np.maximum(0.0, 1.0 - cos_phi**2))
+
+    x = r * sin_phi * np.cos(theta)
+    y = r * sin_phi * np.sin(theta)
+    z = r * cos_phi
+
+    pts = np.stack([x, y, z], axis=1)
+    return torch.tensor(pts, dtype=torch.float32)
+
+
+def sample_domain_points(N_domain, hemisphere="upper"):
+    """
+    Uniform-in-volume sampling inside hemispherical shell:
+      r_inner <= ||x|| <= r_outer
+    with hemisphere restriction.
+    """
+    # 1) direction uniform on hemisphere
+    theta = np.random.uniform(0.0, 2.0 * np.pi, N_domain)
+    u = np.random.uniform(0.0, 1.0, N_domain)  # u = |cos(phi)|
+
+    if hemisphere == "upper":
+        cos_phi = u
+    elif hemisphere == "lower":
+        cos_phi = -u
+    else:
+        raise ValueError("hemisphere must be 'upper' or 'lower'.")
+
+    sin_phi = np.sqrt(np.maximum(0.0, 1.0 - cos_phi**2))
+    ux = sin_phi * np.cos(theta)
+    uy = sin_phi * np.sin(theta)
+    uz = cos_phi
+
+    # 2) radius uniform in volume shell => r^3 uniform
+    v = np.random.uniform(0.0, 1.0, N_domain)
+    r = (r_inner**3 + (r_outer**3 - r_inner**3) * v) ** (1.0 / 3.0)
+
+    pts = np.stack([ux * r, uy * r, uz * r], axis=1)
+    return torch.tensor(pts, dtype=torch.float32)
+
+
+def compute_unit_outward_normal(points, surface_type, hemisphere="upper"):
+    """
+    Outward normals for the domain = hemispherical shell (between inner and outer surfaces).
+
+    OuterHemisphere: +r_hat
+    InnerHemisphere: -r_hat  (outward from material into cavity)
+    BaseAnnulus: outward is -z for upper, +z for lower
+    """
+    eps = 1e-8
+
+    if surface_type in ["OuterHemisphere", "InnerHemisphere"]:
+        r_hat = points / (torch.norm(points, dim=1, keepdim=True) + eps)
+        return r_hat if surface_type == "OuterHemisphere" else -r_hat
+
+    if surface_type == "BaseAnnulus":
+        n = torch.zeros_like(points)
+        n[:, 2] = -1.0 if hemisphere == "upper" else 1.0
+        return n
+
+    raise ValueError("surface_type must be 'OuterHemisphere', 'InnerHemisphere', or 'BaseAnnulus'.")
