@@ -1,0 +1,20 @@
+#-------------------;
+# Necessary Imports ;
+#-------------------;
+import numpy as np
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+import math, random, time
+import torch, torch.nn as nn, torch.optim as optim
+import torch.autograd as autograd
+from collections import deque
+#import matplotlib.pyplot as plt
+
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+from scipy.interpolate import RegularGridInterpolator
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Training on:", DEVICE)
