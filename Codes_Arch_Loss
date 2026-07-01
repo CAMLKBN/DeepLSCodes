@@ -1,0 +1,276 @@
+EPOCHS_ADAM = 2200
+EPOCHS_BFGS = 1000
+
+
+#=========================;
+# Fourier feature encoder ;
+#=========================;
+
+class FourierEncoder(nn.Module):
+    def __init__(self, n_freq=6):
+        super().__init__()
+        freqs = (2 ** torch.arange(n_freq)) * math.pi
+        self.register_buffer("freqs", freqs)
+
+    def forward(self, xy):
+        out = [xy]  # (N,2)
+        for w in self.freqs:
+            out += [torch.sin(w * xy), torch.cos(w * xy)]  # each (N,2)
+        return torch.cat(out, dim=-1)
+
+encoder = FourierEncoder(n_freq=6).to(DEVICE)
+
+with torch.no_grad():
+    ENCODING_DIM = encoder(torch.zeros(1, 2, device=DEVICE)).shape[-1]
+
+
+#=================================;
+# Shared trunk + TWO heads (p, u) ;
+#=================================;
+
+class ResBlock(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.fc1 = nn.Linear(dim, dim)
+        self.act = nn.SiLU()
+        self.fc2 = nn.Linear(dim, dim)
+
+    def forward(self, x):
+        return x + self.fc2(self.act(self.fc1(x)))
+
+
+class TrunkNet(nn.Module):
+    def __init__(self, in_dim, width=256, depth=8):
+        super().__init__()
+        self.in_proj = nn.Linear(in_dim, width)
+        self.blocks  = nn.Sequential(*[ResBlock(width) for _ in range(depth)])
+        self.act     = nn.SiLU()
+        self.heads   = nn.ModuleDict({
+            "p": nn.Linear(width, 1),
+            "u": nn.Linear(width, 2),
+        })
+
+    def forward(self, enc):
+        z = self.act(self.blocks(self.in_proj(enc)))
+        out = {}
+        for k, h in self.heads.items():
+            y = h(z)
+            out[k] = y.squeeze(-1) if y.shape[-1] == 1 else y
+        return out
+
+
+model = TrunkNet(ENCODING_DIM).to(DEVICE)
+autograd.set_detect_anomaly(False)
+
+
+def safe_mean(t: torch.Tensor) -> torch.Tensor:
+    return t.mean() if t.numel() > 0 else torch.zeros((), device=t.device)
+
+
+def divergence(u: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
+    du_dx = autograd.grad(u[:, 0], x, torch.ones_like(u[:, 0]), create_graph=True)[0][:, 0]
+    du_dy = autograd.grad(u[:, 1], x, torch.ones_like(u[:, 1]), create_graph=True)[0][:, 1]
+    return du_dx + du_dy
+
+
+# -------------------
+# Darcy residuals + LS losses
+# -------------------
+
+def residuals(x: torch.Tensor):
+    """Return R1 (vector) and R2 (scalar) for Darcy."""
+    out = model(encoder(x))
+    p = out["p"]           # (N,)
+    u = out["u"]           # (N,2)
+    K = permeability(x)    # (N,)
+
+    gp = autograd.grad(p, x, torch.ones_like(p), create_graph=True)[0]  # (N,2)
+
+    # Darcy momentum (K=1): R1 = mu*u + grad(p)
+    R1 = (MU /K).unsqueeze(-1) * u + gp   # Ensure (N,1) * (N,2) -> (N,2)
+
+    # Continuity: R2 = div(u)
+    R2 = divergence(u, x)
+
+    return R1, R2
+
+
+def physics_loss(x: torch.Tensor):
+    R1, R2 = residuals(x)          # R1: (N,2), R2: (N,)
+    K = permeability(x)            # (N,)
+
+    # μ^{-1/2} √K R1
+    R1_weighted = torch.sqrt(K / MU).unsqueeze(-1) * R1
+
+    # 1/2 || μ^{-1/2} √K R1 ||_Ω^2
+    L_flow = 0.5 * (R1_weighted.square().sum(-1)).mean()
+
+    # 1/2 || R2 ||_Ω^2
+    L_div  = 0.5 * (R2.square()).mean()
+
+    return L_flow, L_div
+
+
+def boundary_loss(n_edge: int):
+    # Dirichlet pressure on inner/outer circles
+    xin  = sample_boundary_points(n_edge, "InnerCircle").to(DEVICE)  # no requires_grad needed
+    xout = sample_boundary_points(n_edge, "OuterCircle").to(DEVICE)
+
+    out_in  = model(encoder(xin))
+    out_out = model(encoder(xout))
+
+    p_in  = 12.30
+    p_out = 1.00
+
+    bc_in  = safe_mean((out_in["p"]  - p_in).square())
+    bc_out = safe_mean((out_out["p"] - p_out).square())
+
+    total = bc_in + bc_out
+    return total, dict(
+        inner=bc_in.item(),
+        outer=bc_out.item(),
+    )
+
+
+# -------------------
+# AdaptiveWeights
+# -------------------
+class AdaptiveWeights:
+    def __init__(self, alpha=4.0, window=50, ratio_thr=10.0, device=DEVICE):
+        super().__init__() # Call superclass constructor
+        self.alpha  = alpha
+        self.window = window
+        self.ratio  = ratio_thr
+        self.device = device
+
+        self._prev = {}
+        self._buf  = {}
+        self._lam  ={}
+
+    def __getattr__(self, name):
+        if name.startswith("w_") and name[2:] in self._lam:
+            return self._lam[name[2:]]
+        raise AttributeError(name)
+
+    @torch.no_grad()
+    def rebalance(self, **loss_dict):
+        if not self._lam:
+            for t in loss_dict:
+                self._prev[t] = None
+                self._buf[t]  = deque(maxlen=self.window)
+                self._lam[t]  = torch.tensor(1.0, device=self.device)
+
+        for t, L in loss_dict.items():
+            if self._prev[t] is not None:
+                drop = abs((self._prev[t] - L) / (self._prev[t] + 1e-12))
+                self._buf[t].append(float(drop))
+            self._prev[t] = float(L.detach())
+
+        if any(len(buf) < self.window for buf in self._buf.values()):
+            return
+
+        V = {t: sum(buf) / self.window for t, buf in self._buf.items()}
+        vmax, vmin = max(V.values()), min(V.values())
+        if vmax / max(vmin, 1e-12) <= self.ratio or vmax == vmin:
+            return
+
+        Fastest = min(V, key=V.get)
+        for t in self._lam:
+            if t == Fastest:
+                self._lam[t].fill_(1.0)
+            else:
+                Rj = (V[t] - vmin) / (vmax - vmin)
+                self._lam[t].fill_(1.0 + self.alpha * Rj)
+
+
+weights = AdaptiveWeights(alpha=4.0, window=50, ratio_thr=10.0)
+
+
+# -------------------
+# Collocation cloud seed
+# -------------------
+interior_cloud = sample_domain_points(N_DOMAIN0).to(DEVICE).requires_grad_(True)
+
+
+# -------------------
+# Optimisers
+# -------------------
+adam = optim.Adam(model.parameters(), lr=1e-3)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(adam, 'min', 0.5, 800)
+
+lbfgs = optim.LBFGS(
+    model.parameters(),
+    lr=1.0,
+    max_iter=EPOCHS_BFGS,
+    history_size=50,
+    line_search_fn="strong_wolfe",
+)
+
+
+# =========================================================================
+# Training loop
+# =========================================================================
+for rar in range(RAR_ROUNDS + 1):
+    print(f"\nRAR round {rar} | interior pts = {len(interior_cloud)}")
+
+    # ---------------- Adam phase ----------------
+    for epoch in range(EPOCHS_ADAM):
+        idx = torch.randint(0, len(interior_cloud), (2048,), device=DEVICE)
+        x_int = interior_cloud[idx].detach().clone().requires_grad_(True)
+
+        L_flow, L_div = physics_loss(x_int)
+        L_bc, bc_break = boundary_loss(N_BOUNDARY)
+
+        weights.rebalance(flow=L_flow, div=L_div, bc=L_bc)
+        λf, λd, λb = weights.w_flow, weights.w_div, weights.w_bc
+
+        adam.zero_grad()
+        loss = λf * L_flow + λd * L_div + λb * L_bc
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        adam.step()
+        scheduler.step(loss.detach())
+
+        if epoch % 200 == 0 or epoch == EPOCHS_ADAM - 1:
+            R1, R2 = residuals(x_int)
+            with torch.no_grad():
+                R1_m = (R1.square().sum(-1)).mean().item()
+                R2_m = (R2.square()).mean().item()
+
+            print(
+                f"ep {epoch:4d} | "
+                f"Lflow {L_flow:.1e}  Ldiv {L_div:.1e}  Lbc {L_bc:.1e} | "
+                f"R1 {R1_m:.1e} R2 {R2_m:.1e} | "
+                f"λf {λf:.2f} λd {λd:.2f} λb {λb:.2f} | "
+                f"inner {bc_break['inner']:.1e} outer {bc_break['outer']:.1e}"
+            )
+
+    # ---------------- L-BFGS polish ----------------
+    def closure():
+        lbfgs.zero_grad()
+        Lf, Ld = physics_loss(interior_cloud)
+        Lb, _ = boundary_loss(N_BOUNDARY)
+        tot = weights.w_flow * Lf + weights.w_div * Ld + weights.w_bc * Lb
+        tot.backward(retain_graph=True)  # IMPORTANT: no retain_graph
+        return tot
+
+    lbfgs.step(closure)
+
+    # ---------------- RAR enrichment ----------------
+    if rar == RAR_ROUNDS:
+        break
+
+    cand = sample_domain_points(RAR_ADD * 3).to(DEVICE).requires_grad_(True)
+    R1, R2 = residuals(cand)
+    with torch.no_grad():
+        resid = (R1.square().sum(-1) + R2.square()).sqrt()
+
+    top_idx = torch.topk(resid, RAR_ADD).indices
+    interior_cloud = torch.cat([interior_cloud, cand[top_idx]], dim=0)
+
+    if len(interior_cloud) > 12_000:
+        perm = torch.randperm(len(interior_cloud), device=DEVICE)[:12_000]
+        interior_cloud = interior_cloud[perm]
+    interior_cloud.requires_grad_(True)
+
+print("\n✅ Training finished.")
