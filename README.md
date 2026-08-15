@@ -291,9 +291,4 @@ Please cite the paper if you use this repository in your work.
 
 ## Acknowledgments
 
-This work acknowledges support from the  Environmental Molecular
-Sciences Laboratory (EMSL), a DOE Office of Science User Facility sponsored by the Biological and
-Environmental Research program under contract no: DE-AC05-76RL01830 (Large-Scale Research
-User Project No: 60720, Award DOI: `10.46936/lser.proj.2023.60720/60008914`). The views
-and opinions of authors expressed herein do not necessarily state or reflect those of the United
-States Government or any agency thereof
+This work acknowledges support from the Environmental Molecular Sciences Laboratory (EMSL), a DOE Office of Science User Facility sponsored by the Biological and Environmental Research program under contract no. DE-AC05-76RL01830 (Large-Scale Research User Project No. 60720, Award DOI: [10.46936/lser.proj.2023.60720/60008914](https://doi.org/10.46936/lser.proj.2023.60720/60008914)). The views and opinions of the authors expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.
