@@ -281,4 +281,4 @@ for rar in range(RAR_ROUNDS + 1):
         interior_cloud = interior_cloud[perm]
     interior_cloud.requires_grad_(True)
 
-print("\n✅ Training finished.")
+print("\n Training finished.")
