@@ -1,5 +1,5 @@
-EPOCHS_ADAM = 2200
-EPOCHS_BFGS = 1000
+EPOCHS_ADAM = USER DEFINED
+EPOCHS_BFGS = USER DEFINED
 
 
 #=========================;
@@ -7,7 +7,7 @@ EPOCHS_BFGS = 1000
 #=========================;
 
 class FourierEncoder(nn.Module):
-    def __init__(self, n_freq=6):
+    def __init__(self, n_freq= USER DEFINED):
         super().__init__()
         freqs = (2 ** torch.arange(n_freq)) * math.pi
         self.register_buffer("freqs", freqs)
@@ -40,7 +40,7 @@ class ResBlock(nn.Module):
 
 
 class TrunkNet(nn.Module):
-    def __init__(self, in_dim, width=256, depth=8):
+    def __init__(self, in_dim, width= USER DEFINED, depth= USER DEFINED):
         super().__init__()
         self.in_proj = nn.Linear(in_dim, width)
         self.blocks  = nn.Sequential(*[ResBlock(width) for _ in range(depth)])
@@ -73,9 +73,9 @@ def divergence(u: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
     return du_dx + du_dy
 
 
-# -------------------
-# Darcy residuals + LS losses
-# -------------------
+#=============================;
+# Darcy residuals + LS losses ;
+#=============================;
 
 def residuals(x: torch.Tensor):
     """Return R1 (vector) and R2 (scalar) for Darcy."""
@@ -86,10 +86,10 @@ def residuals(x: torch.Tensor):
 
     gp = autograd.grad(p, x, torch.ones_like(p), create_graph=True)[0]  # (N,2)
 
-    # Darcy momentum (K=1): R1 = mu*u + grad(p)
+    #-- Darcy momentum (K=1): R1 = mu*u + grad(p) --;
     R1 = (MU /K).unsqueeze(-1) * u + gp   # Ensure (N,1) * (N,2) -> (N,2)
 
-    # Continuity: R2 = div(u)
+    #-- Continuity: R2 = div(u) --;
     R2 = divergence(u, x)
 
     return R1, R2
@@ -112,15 +112,16 @@ def physics_loss(x: torch.Tensor):
 
 
 def boundary_loss(n_edge: int):
-    # Dirichlet pressure on inner/outer circles
+    #-- Dirichlet pressure on inner/outer circles --;
+
     xin  = sample_boundary_points(n_edge, "InnerCircle").to(DEVICE)  # no requires_grad needed
     xout = sample_boundary_points(n_edge, "OuterCircle").to(DEVICE)
 
     out_in  = model(encoder(xin))
     out_out = model(encoder(xout))
 
-    p_in  = 12.30
-    p_out = 1.00
+    p_in  = USER DEFINED
+    p_out = USER DEFINED
 
     bc_in  = safe_mean((out_in["p"]  - p_in).square())
     bc_out = safe_mean((out_out["p"] - p_out).square())
@@ -132,11 +133,12 @@ def boundary_loss(n_edge: int):
     )
 
 
-# -------------------
-# AdaptiveWeights
-# -------------------
+#=================;
+# AdaptiveWeights ;
+#=================;
+
 class AdaptiveWeights:
-    def __init__(self, alpha=4.0, window=50, ratio_thr=10.0, device=DEVICE):
+    def __init__(self, alpha=USER DEFINED, window=USER DEFINED, ratio_thr=USER DEFINED, device=DEVICE):
         super().__init__() # Call superclass constructor
         self.alpha  = alpha
         self.window = window
@@ -183,37 +185,41 @@ class AdaptiveWeights:
                 self._lam[t].fill_(1.0 + self.alpha * Rj)
 
 
-weights = AdaptiveWeights(alpha=4.0, window=50, ratio_thr=10.0)
+weights = AdaptiveWeights(alpha=USER DEFINED, window=USER DEFINED, ratio_thr=USER DEFINED)
 
 
-# -------------------
-# Collocation cloud seed
-# -------------------
+#========================;
+# Collocation cloud seed ;
+#========================;
+
 interior_cloud = sample_domain_points(N_DOMAIN0).to(DEVICE).requires_grad_(True)
 
 
-# -------------------
-# Optimisers
-# -------------------
-adam = optim.Adam(model.parameters(), lr=1e-3)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(adam, 'min', 0.5, 800)
+#============;
+# Optimisers ;
+#============;
+
+adam = optim.Adam(model.parameters(), lr=USER DEFINED)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(adam, 'min', USER DEFINED, USER DEFINED)
 
 lbfgs = optim.LBFGS(
     model.parameters(),
-    lr=1.0,
+    lr=USER DEFINED,
     max_iter=EPOCHS_BFGS,
-    history_size=50,
+    history_size=USER DEFINED,
     line_search_fn="strong_wolfe",
 )
 
 
-# =========================================================================
-# Training loop
-# =========================================================================
+#===============;
+# Training loop ;
+#===============;
+
 for rar in range(RAR_ROUNDS + 1):
     print(f"\nRAR round {rar} | interior pts = {len(interior_cloud)}")
 
-    # ---------------- Adam phase ----------------
+    #-- Adam phase --;
+
     for epoch in range(EPOCHS_ADAM):
         idx = torch.randint(0, len(interior_cloud), (2048,), device=DEVICE)
         x_int = interior_cloud[idx].detach().clone().requires_grad_(True)
@@ -231,7 +237,7 @@ for rar in range(RAR_ROUNDS + 1):
         adam.step()
         scheduler.step(loss.detach())
 
-        if epoch % 200 == 0 or epoch == EPOCHS_ADAM - 1:
+        if epoch % USER DEFINED == 0 or epoch == EPOCHS_ADAM - 1:
             R1, R2 = residuals(x_int)
             with torch.no_grad():
                 R1_m = (R1.square().sum(-1)).mean().item()
@@ -245,7 +251,8 @@ for rar in range(RAR_ROUNDS + 1):
                 f"inner {bc_break['inner']:.1e} outer {bc_break['outer']:.1e}"
             )
 
-    # ---------------- L-BFGS polish ----------------
+    #-- L-BFGS polish --;
+
     def closure():
         lbfgs.zero_grad()
         Lf, Ld = physics_loss(interior_cloud)
@@ -256,20 +263,21 @@ for rar in range(RAR_ROUNDS + 1):
 
     lbfgs.step(closure)
 
-    # ---------------- RAR enrichment ----------------
+    #-- RAR enrichment --;
+
     if rar == RAR_ROUNDS:
         break
 
-    cand = sample_domain_points(RAR_ADD * 3).to(DEVICE).requires_grad_(True)
+    cand = sample_domain_points(RAR_ADD * USER DEFINED).to(DEVICE).requires_grad_(True)
     R1, R2 = residuals(cand)
     with torch.no_grad():
         resid = (R1.square().sum(-1) + R2.square()).sqrt()
 
     top_idx = torch.topk(resid, RAR_ADD).indices
-    interior_cloud = torch.cat([interior_cloud, cand[top_idx]], dim=0)
+    interior_cloud = torch.cat([interior_cloud, cand[top_idx]], dim=USER DEFINED)
 
-    if len(interior_cloud) > 12_000:
-        perm = torch.randperm(len(interior_cloud), device=DEVICE)[:12_000]
+    if len(interior_cloud) > USER DEFINED:
+        perm = torch.randperm(len(interior_cloud), device=DEVICE)[:USER DEFINED]
         interior_cloud = interior_cloud[perm]
     interior_cloud.requires_grad_(True)
 
