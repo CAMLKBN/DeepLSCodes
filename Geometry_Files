@@ -3,8 +3,8 @@
 #---------------------;
 # Geometry parameters ;
 #---------------------;
-r_outer = 1.0
-r_inner = 0.3
+r_outer = USER DEFINED
+r_inner = USER DEFINED
 
 #------------------------------------;
 # Function to sample boundary points ;
@@ -29,9 +29,11 @@ def sample_boundary_points(N_boundary, circle_type):
 #==================================;
 
 def sample_domain_points(N_domain):
+
     #------------------------------;
     # Oversample in a bounding box ;
     #------------------------------;
+
     points = np.random.uniform(-r_outer, r_outer, (N_domain * 2, 2))
 
     valid_points = []
@@ -45,39 +47,47 @@ def sample_domain_points(N_domain):
         print(f"Warning: Only {len(valid_points)} domain points sampled.")
 
     return torch.tensor(valid_points, dtype=torch.float32)
+
 #==========================================;
 # Function to compute unit outward normals ;
 #==========================================;
+
 def compute_unit_outward_normal(points, circle_type):
     r_vec = points / (torch.norm(points, dim=1, keepdim=True) + 1e-8)
     if circle_type == "OuterCircle":
         #r = r_outer
+
         #---------------------------------------------;
         # Outward normal for outer circle: (x/r, y/r) ;
         #---------------------------------------------;
+
         normals = r_vec#points / r
     elif circle_type == "InnerCircle":
         #r = r_inner
+
         #---------------------------------;
         # Outward normal for inner circle ;
         #---------------------------------;
         normals = -(-r_vec)#-points / r
     else:
         raise ValueError("circle_type must be 'OuterCircle' or 'InnerCircle'.")
+
     #--------------------;
     # Ensure unit length ;
     #--------------------;
+
     #normals /= torch.norm(normals, dim=1, keepdim=True) + 1e-8
     return normals
 
 #---------------;
 # Sample points ;
 #---------------;
-N_domain = 10000
-N_boundary = 1000
+N_domain = USER DEFINED
+N_boundary = USER DEFINED
 outer_points = sample_boundary_points(N_boundary, "OuterCircle").to(DEVICE).requires_grad_(True)
 inner_points = sample_boundary_points(N_boundary, "InnerCircle").to(DEVICE).requires_grad_(True)
 domain_points = sample_domain_points(N_domain).to(DEVICE).requires_grad_(True)
+
 #-----------------;
 # Compute normals ;
 #-----------------;
@@ -87,25 +97,28 @@ inner_normals = compute_unit_outward_normal(inner_points, "InnerCircle")
 
 # Fotting 
 
-# -------------------
-# Geometry
-# -------------------
-length = 10.0  # x ∈ [0, 10]
-height = 5.0   # y ∈ [0, 5]
+#==================;
+# Geometry Fotting ;
+#==================;
 
-# Top boundary segmentation from the figure
-x_T1_end = 2.5
-x_T3_start = 7.5
+length = USER DEFINED  # x ∈ [0, 10]
+height = USER DEFINED  # y ∈ [0, 5]
 
-p_left = 12.3
-p_right = 1.0
+# Top boundary segmentation from the figure 
 
-# Darcy parameters (K=1 everywhere)
-MU = 1.0
+x_T1_end = USER DEFINED
+x_T3_start = USER DEFINED
 
-# -------------------------------
-# Geometry & boundary samplers
-# -------------------------------
+p_left = USER DEFINED
+p_right = USER DEFINED
+
+# Darcy parameters 
+
+MU = USER DEFINED
+
+#==============================;
+# Geometry & boundary samplers ;
+#==============================;
 
 def sample_boundary_points(
     N: int,
@@ -162,9 +175,9 @@ def compute_unit_outward_normal(points: torch.Tensor, boundary: str) -> torch.Te
 
 # Concetric spheres 
 
-#============================================================
-# Geometry sampling
-#============================================================
+#===================;
+# Geometry sampling ;
+#===================;
 
 def sample_boundary_points(N_boundary, surface_type, hemisphere="upper"):
     """
